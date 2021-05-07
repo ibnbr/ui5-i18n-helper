@@ -2,7 +2,7 @@
 	"name": "ui5-i18n-helper",
 	"displayName": "ui5-i18n-helper",
 	"description": "Helper to verify I18N on SAPUI5/OPENUI5 App",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"homepage": "https://github.com/ibnbr/ui5-i18n-helper",
 	"author": "Italo Naia",
 	"publisher": "ItaloNaia",
@@ -48,17 +48,17 @@
 					"type": "array",
 					"scope": "resource",
 					"default": [
-						"resources/webapp/**/*.js",
-						"resources/webapp/manifest.json",
-						"resources/webapp/**/*.xml",
-						"resources/webapp/**/*.html"
+						"src/**/*.js",
+						"src/manifest.json",
+						"src/**/*.xml",
+						"src/**/*.html"
 					],
 					"description": "Glob Pattern to search files"
 				},
 				"ui15.i18n.helper.outputFileName": {
 					"type": "string",
 					"scope": "resource",
-					"default": "resources/webapp/i18n/i18n.properties",
+					"default": "src/i18n/i18n.properties",
 					"description": "Path to I18N File"
 				},
 				"ui15.i18n.helper.xmlhtmlPattern": {
