@@ -8,7 +8,9 @@ It was based on the gulp plugin [gulp-i18n-ui5](https://github.com/norbertvolf/g
 
 # Usage
 
-Open the command bar (CTRL+SHIFT+P) and type Verify UI5 I18N Tokens
+Open the command bar (CTRL+SHIFT+P) and choose one of the commands
+*UI5 I18N> Verify I18N Tokens in entire Project - This command search all code for Tokens to Add/Activate/Deactivate
+*UI5 I18N> Verify I18N Tokens on focused Editor - This command search only the file of focused Editor for Tokens to Add/Activate
 ![Usage](/img/usage.gif)
 
 
@@ -21,10 +23,10 @@ Open the command bar (CTRL+SHIFT+P) and type Verify UI5 I18N Tokens
 * Glob pattern to search files
 >default:
 ```
-    "src/**/*.js"
-    "src/manifest.json"
-    "src/**/*.xml"
-    "src/**/*.html"
+    "**/*.js"
+    "manifest.json"
+    "**/*.xml"
+    "**/*.html"
 ```
 * Pattern for *.HTML and *.XML files
 >default:
@@ -47,3 +49,7 @@ Open the command bar (CTRL+SHIFT+P) and type Verify UI5 I18N Tokens
 ```
 
 
+# TODO
+*Ignore Tokens in commented Source
+*Option to delete token instead of deactivate
+*And More???

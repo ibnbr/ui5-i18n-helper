@@ -31,14 +31,19 @@
 		"translate"
 	],
 	"activationEvents": [
-		"onCommand:ui5-i18n-helper.i18n"
+		"onCommand:ui5-i18n-helper.i18n",
+		"onCommand:ui5-i18n-helper.i18nfocused"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "ui5-i18n-helper.i18n",
-				"title": "Verify UI5 I18N Tokens"
+				"title": "UI5 I18N> Verify I18N Tokens in entire Project"
+			},
+			{
+				"command": "ui5-i18n-helper.i18nfocused",
+				"title": "UI5 I18N> Verify I18N Tokens on focused Editor"
 			}
 		],
 		"configuration": {
@@ -48,10 +53,10 @@
 					"type": "array",
 					"scope": "resource",
 					"default": [
-						"src/**/*.js",
-						"src/manifest.json",
-						"src/**/*.xml",
-						"src/**/*.html"
+						"**/*.js",
+						"manifest.json",
+						"**/*.xml",
+						"**/*.html"
 					],
 					"description": "Glob Pattern to search files"
 				},

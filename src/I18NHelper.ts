@@ -10,7 +10,7 @@ enum TOKEN {
     ignore
 };
 
-interface Token  {
+interface Token {
     type: TOKEN;
     name: string;
     value: string;
@@ -31,23 +31,51 @@ export class I18NHelper {
 
     }
 
+    executeFocusedEditor() {
+        this.config = vscode.workspace.getConfiguration('ui15.i18n.helper');
+        this.appended = 0;
+        this.activated = 0;
+        this.deactivated = 0;
+        Promise.all([
+            this.searchForTokensInI18N(),
+            this.searchForTokensInCode(vscode.window.activeTextEditor.document)
+        ]).then(data => {
+            this.saveFile(false);
+        });
+    }
+
     execute() {
         this.config = vscode.workspace.getConfiguration('ui15.i18n.helper');
+        this.appended = 0;
+        this.activated = 0;
+        this.deactivated = 0;
         Promise.all([
             this.searchForTokensInI18N(),
             this.searchForTokensInCode()
         ]).then(data => {
-            this.saveFile();
+            this.saveFile(true);
         });
 
     }
-    saveFile() {
-        let msg; 
-        let rootPath = (vscode.workspace.workspaceFolders) ? vscode.workspace.workspaceFolders[0].uri.path : '';
-        let outputFile = <string> path.join(rootPath, this.config.get("outputFileName"));
-        let finalTokens = this.mergeTokens();
-        fs.writeFileSync(outputFile, finalTokens.join('\n')+'\n'); 
-        msg = `I18N Tokens: ${this.appended} Added,  ${this.activated} Activated, ${this.deactivated} Deactivate`;
+    saveFile(deactiveTokens: boolean) {
+        let msg;
+        let rootPath = (vscode.workspace.workspaceFolders) ? vscode.workspace.workspaceFolders[0].uri.fsPath : '';
+        let outputFile = <string>path.join(rootPath, this.config.get("outputFileName"));
+        let finalTokens = this.mergeTokens(deactiveTokens);
+        if (this.i18nCodeTokens.length === 0) {
+            vscode.window.showInformationMessage("No File Found to find Tokens!");
+            return;
+        }
+        try {
+            fs.writeFileSync(outputFile, finalTokens.join('\n') + '\n');
+        } catch (e) {
+            vscode.window.showInformationMessage("Error Saving final I18N File");
+        }
+        if (deactiveTokens) {
+            msg = `I18N Tokens: ${this.appended} Added,  ${this.activated} Activated, ${this.deactivated} Deactivate`;
+        } else {
+            msg = `I18N Tokens: ${this.appended} Added,  ${this.activated} Activated`;
+        }
         vscode.window.showInformationMessage(msg);
     }
 
@@ -55,35 +83,43 @@ export class I18NHelper {
         let rootPath = (vscode.workspace.workspaceFolders) ? vscode.workspace.workspaceFolders[0].uri.path : '';
         let i18nFile = vscode.Uri.file(path.join(rootPath, this.config.get("outputFileName")));
         let outputPattern = "^(#*)([^= ]+) *= *([^#]*)(#*)";
-        await vscode.workspace.fs.readFile(i18nFile).then((file: Uint8Array) => {
-            this.i18nFileTokens = _.chain(file.toString().split("\n"))
-                .map((row) => {
-                    let match = row.match(outputPattern);
-                    let retval : Token = {} as Token;
-                    retval.type = TOKEN.undef;
-                    retval.line = row;
-                    if (match !== null) {
-                        if (match[4] === "#") {
-                            retval.type = TOKEN.ignore;
-                        } else if (match[1] === "#") {
-                            retval.type = TOKEN.inactive;
-                        } else {
-                            retval.type = TOKEN.active;
+        try {
+            await vscode.workspace.fs.readFile(i18nFile).then((file: Uint8Array) => {
+                this.i18nFileTokens = _.chain(file.toString().split("\n"))
+                    .map((row) => {
+                        let match = row.match(outputPattern);
+                        let retval: Token = {} as Token;
+                        retval.type = TOKEN.undef;
+                        retval.line = row;
+                        if (match !== null) {
+                            if (match[4] === "#") {
+                                retval.type = TOKEN.ignore;
+                            } else if (match[1] === "#") {
+                                retval.type = TOKEN.inactive;
+                            } else {
+                                retval.type = TOKEN.active;
+                            }
+                            retval.name = match[2];
+                            retval.value = match[3];
                         }
-                        retval.name = match[2];
-                        retval.value = match[3];
-                    }
-                    return retval;
-                }).dropRightWhile(function(token) {
-                    return token.line === '';
-                }).value();
-            return this.i18nFileTokens;
-        });
+                        return retval;
+                    }).dropRightWhile(function (token) {
+                        return token.line === '';
+                    }).value();
+                return this.i18nFileTokens;
+            });
+        } catch (error) {
+            vscode.window.showInformationMessage(`File ${i18nFile} not found`);
+        }
     }
 
-    async searchForTokensInCode() {
-        await this.searchForFiles()
-            .then(filesUri => this.searchForTokensinCode(filesUri));
+    async searchForTokensInCode(document?: vscode.TextDocument) {
+        if (document) {
+            this.searchForTokensinCode([document.uri]);
+        } else {
+            await this.searchForFiles()
+                .then(filesUri => this.searchForTokensinCode(filesUri));
+        }
     }
 
     async searchForFiles(): Promise<vscode.Uri[]> {
@@ -122,7 +158,7 @@ export class I18NHelper {
         }
     }
 
-    mergeTokens() {
+    mergeTokens(deactiveTokens: boolean) {
         const defaultTranslation = this.config.get("defaultTranslation");
 
         //Find new Tokens to Add
@@ -145,26 +181,28 @@ export class I18NHelper {
             }).value();
 
         //Find Tokens to deactive
-        _.chain(this.i18nFileTokens).filter((token) => {
-            return token.type === TOKEN.active &&
-                /*                _.find(config.noDeactivateTokens, function (v) {
-                                    return v === token.name;
-                                }) === undefined &&*/
-                _.find(this.i18nCodeTokens, (v) => {
-                    return v === token.name;
-                }) === undefined;
-        }).map( (token) => {
-            //log('DEACTIVATE token ' + gutil.colors.cyan(token.name));
-            this.deactivated++;
-            token.line = "#" + token.line;
-        }).value();
+        if (deactiveTokens) {
+            _.chain(this.i18nFileTokens).filter((token) => {
+                return token.type === TOKEN.active &&
+                    /*                _.find(config.noDeactivateTokens, function (v) {
+                                        return v === token.name;
+                                    }) === undefined &&*/
+                    _.find(this.i18nCodeTokens, (v) => {
+                        return v == token.name;
+                    }) === undefined;
+            }).map((token) => {
+                //log('DEACTIVATE token ' + gutil.colors.cyan(token.name));
+                this.deactivated++;
+                token.line = "#" + token.line;
+            }).value();
+        }
 
         //Find Tokens to active
-        _.chain<Token>(this.i18nFileTokens).filter((token: Token) : any  => {
+        _.chain<Token>(this.i18nFileTokens).filter((token: Token): any => {
             return token.type === TOKEN.inactive
-            && _.find(this.i18nCodeTokens, (v) => {
-                return v === token.name;
-            });
+                && _.find(this.i18nCodeTokens, (v) => {
+                    return v === token.name;
+                });
         }).map((token) => {
             //log('ACTIVATE token ' + gutil.colors.cyan(token.name));
             this.activated++;
@@ -173,7 +211,7 @@ export class I18NHelper {
 
         let ret = _.chain(this.i18nFileTokens)
             .concat(tokensToAdd)
-            .map((token)=> {
+            .map((token) => {
                 return token.line;
             }).value();
         return ret;
