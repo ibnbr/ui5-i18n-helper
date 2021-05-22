@@ -9,8 +9,8 @@ It was based on the gulp plugin [gulp-i18n-ui5](https://github.com/norbertvolf/g
 # Usage
 
 Open the command bar (CTRL+SHIFT+P) and choose one of the commands
-*UI5 I18N> Verify I18N Tokens in entire Project - This command search all code for Tokens to Add/Activate/Deactivate
-*UI5 I18N> Verify I18N Tokens on focused Editor - This command search only the file of focused Editor for Tokens to Add/Activate
+* UI5 I18N> Verify I18N Tokens in entire Project - This command search all code for Tokens to Add/Activate/Deactivate
+* UI5 I18N> Verify I18N Tokens on focused Editor - This command search only the file of focused Editor for Tokens to Add/Activate
 ![Usage](/img/usage.gif)
 
 
@@ -50,6 +50,6 @@ Open the command bar (CTRL+SHIFT+P) and choose one of the commands
 
 
 # TODO
-*Ignore Tokens in commented Source
-*Option to delete token instead of deactivate
-*And More???
+* Ignore Tokens in commented Source
+* Option to delete token instead of deactivate
+* And More???
