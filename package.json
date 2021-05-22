@@ -2,7 +2,7 @@
 	"name": "ui5-i18n-helper",
 	"displayName": "ui5-i18n-helper",
 	"description": "Helper to verify I18N on SAPUI5/OPENUI5 App",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"homepage": "https://github.com/ibnbr/ui5-i18n-helper",
 	"author": "Italo Naia",
 	"publisher": "ItaloNaia",
